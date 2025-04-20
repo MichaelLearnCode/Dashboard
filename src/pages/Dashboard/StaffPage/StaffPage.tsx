@@ -22,32 +22,32 @@ const StaffPage = () => {
   const openNotificationWithIcon = (type: NotificationType, message: string, description: string) => {
     api[type]({
       message: message,
-      description:description
+      description: description
     });
   };
   const { modal } = App.useApp();
   const { data: staffData, setData } = useFetch<staffType>('/staff');
-  const showConfirmDelete = (name:string, id: string) => {
+  const showConfirmDelete = (name: string, id: string) => {
     modal.confirm({
       title: `Xác nhận xóa nhân viên ${name}?`,
       onOk() {
         console.log(name, id);
-        return axiosApi.delete(`/staff/${id}`).then(()=>{
-          const newData = staffData.filter(datum=>datum.id !== id);
+        return axiosApi.delete(`/staff/${id}`).then(() => {
+          const newData = staffData.filter(datum => datum.id !== id);
           setData(newData);
           openNotificationWithIcon('success', 'Thành công', `Xóa thành công nhân viên ${name}`)
         })
       },
       okText: "Xóa",
       cancelText: "Hủy",
-      okButtonProps: {variant: "solid", color: "danger"}
+      okButtonProps: { variant: "solid", color: "danger" }
     });
   };
   type DataType = {
     order: number,
     key: string,
   } & staffType;
-  
+
 
   const dataOptions: string[] = [];
   const rawData: DataType[] = [];
@@ -132,15 +132,17 @@ const StaffPage = () => {
       key: "action",
       fixed: "right",
       align: "center",
-      render: (_,record) => {
-        return <Dropdown arrow menu={{ items: [{
-          label: <Text><span className="flex items-center"><PiPencilSimple className="text-[1rem] me-2" />Chỉnh sửa</span></Text>,
-          key: 'edit'
-        },
-        {
-          label: <Text type="danger"><span onClick={()=>{showConfirmDelete(record.name, record.id)}} className="flex items-center"><FiTrash2 className="text-[1rem] me-2" />Xóa</span></Text>,
-          key: 'delete'
-        }] }} trigger={["click"]}>
+      render: (_, record) => {
+        return <Dropdown arrow menu={{
+          items: [{
+            label: <Text><span className="flex items-center"><PiPencilSimple className="text-[1rem] me-2" />Chỉnh sửa</span></Text>,
+            key: 'edit'
+          },
+          {
+            label: <Text type="danger"><span onClick={() => { showConfirmDelete(record.name, record.id) }} className="flex items-center"><FiTrash2 className="text-[1rem] me-2" />Xóa</span></Text>,
+            key: 'delete'
+          }]
+        }} trigger={["click"]}>
           <Button shape="circle" size="small" icon={<BsThreeDotsVertical />}></Button>
         </Dropdown>
       }
@@ -151,10 +153,10 @@ const StaffPage = () => {
   // Modal
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [isCreating, setIsCreating] = useState<boolean>(false);
-  const handleCancel = ()=>{
+  const handleCancel = () => {
     setModalOpen(false);
   }
-  const handleOpen = ()=>{
+  const handleOpen = () => {
     setModalOpen(true);
   }
   type FieldType = {
@@ -165,10 +167,10 @@ const StaffPage = () => {
     gender: string,
     status: string
   }
-  const handleOnCreateStaff:FormProps<FieldType>['onFinish'] = (values)=>{
+  const handleOnCreateStaff: FormProps<FieldType>['onFinish'] = (values) => {
     setIsCreating(true);
-    axiosApi.post('/staff', {...values})
-    .then((response)=>{setData([...staffData,response.data]); setIsCreating(false); setModalOpen(false); openNotificationWithIcon('success','Thành công','Thêm nhân viên thành công');})
+    axiosApi.post('/staff', { ...values })
+      .then((response) => { setData([...staffData, response.data]); setIsCreating(false); setModalOpen(false); openNotificationWithIcon('success', 'Thành công', 'Thêm nhân viên thành công'); })
   }
 
   return (
@@ -176,44 +178,44 @@ const StaffPage = () => {
       <Content>
         {contextHolder}
         <Modal
-        onCancel={handleCancel}
-        open = {modalOpen}
-        title = "Thêm nhân viên"
-        footer = {[]}
+          onCancel={handleCancel}
+          open={modalOpen}
+          title="Thêm nhân viên"
+          footer={[]}
         >
           <Form
-          name = "createStaff"
-          onFinish={handleOnCreateStaff}
-          labelCol={{span: 5}}
-          wrapperCol={{span: 24}}
+            name="createStaff"
+            onFinish={handleOnCreateStaff}
+            labelCol={{ span: 5 }}
+            wrapperCol={{ span: 24 }}
           >
-            <Form.Item name = "name" label = "Tên nhân viên" rules={[{required: true, message: "Tên là bắt buộc"},{min: 5, message: "Độ dài tối thiểu là 5"}]}>
-              <Input/>
+            <Form.Item name="name" label="Tên nhân viên" rules={[{ required: true, message: "Tên là bắt buộc" }, { min: 5, message: "Độ dài tối thiểu là 5" }]}>
+              <Input />
             </Form.Item>
-            <Form.Item name = "phone" label = "Số điện thoại" rules={[{required: true, message: "Số điện thoại là bắt buộc"},{min: 5, message: "Độ dài tối thiểu là 5"}]}>
-              <Input/>
+            <Form.Item name="phone" label="Số điện thoại" rules={[{ required: true, message: "Số điện thoại là bắt buộc" }, { min: 5, message: "Độ dài tối thiểu là 5" }]}>
+              <Input />
             </Form.Item>
-            <Form.Item name = "role" label = "Chức vụ" rules={[{required: true, message: "Chức vụ là bắt buộc"},{min: 3, message: "Độ dài tối thiểu là 3"}]}>
-              <Input/>
+            <Form.Item name="role" label="Chức vụ" rules={[{ required: true, message: "Chức vụ là bắt buộc" }, { min: 3, message: "Độ dài tối thiểu là 3" }]}>
+              <Input />
             </Form.Item>
-            <Form.Item name = "email" label = "Email" rules={[{required: true, message: "Email là bắt buộc"},{type: "email", message: "Email không hợp lệ"}]}>
-              <Input/>
+            <Form.Item name="email" label="Email" rules={[{ required: true, message: "Email là bắt buộc" }, { type: "email", message: "Email không hợp lệ" }]}>
+              <Input />
             </Form.Item>
-            <Form.Item name = "gender" label = "Giới tính" rules = {[{required: true}]}>
-              <Select options={[{value: 'male', label: "Nam"},{value: "female", label: "Nữ"}]}></Select>
+            <Form.Item name="gender" label="Giới tính" rules={[{ required: true }]}>
+              <Select options={[{ value: 'male', label: "Nam" }, { value: "female", label: "Nữ" }]}></Select>
             </Form.Item>
-            <Form.Item name = "status" label = "Trạng thái" rules = {[{required: true}]}>
-              <Select options={[{value: 'active', label: "Hoạt động"},{value: "inactive", label: "Ngừng hoạt động"}]}></Select>
+            <Form.Item name="status" label="Trạng thái" rules={[{ required: true }]}>
+              <Select options={[{ value: 'active', label: "Hoạt động" }, { value: "inactive", label: "Ngừng hoạt động" }]}></Select>
             </Form.Item>
-            <Form.Item label = {null}>
-              <Button loading = {isCreating} className="float-right" type="primary" size = "large" htmlType="submit">Thêm</Button>
+            <Form.Item label={null}>
+              <Button loading={isCreating} className="float-right" type="primary" size="large" htmlType="submit">Thêm</Button>
             </Form.Item>
           </Form>
         </Modal>
         <div className="flex px-2 mt-[10px] items-center gap-x-2">
           <Button size="large" className="ms-auto" icon={<LuChartBarIncreasing />}><Text strong>Bộ lọc</Text></Button>
           <Input style={{ maxWidth: "300px", width: "100%" }} size="large" placeholder="Tìm kiếm" prefix={<CiSearch className="text-xl" />} />
-          <Button size="large" color="primary" onClick = {handleOpen} variant="solid" icon={<FaPlus />}>Thêm mới</Button>
+          <Button size="large" color="primary" onClick={handleOpen} variant="solid" icon={<FaPlus />}>Thêm mới</Button>
         </div>
         <div className="px-2 mt-[20px]">
           <Table<DataType> pagination={false} bordered columns={columns} size="small" dataSource={data} />
