@@ -1,4 +1,4 @@
-import { Typography, Select, SelectProps, GetProp, Dropdown, Badge, Button, Space, Avatar } from "antd";
+import { Typography, Select, SelectProps, GetProp, Dropdown, Badge, Button, Avatar } from "antd";
 import type { MenuProps } from "antd";
 import useConfigStore from "@/store/ConfigStore";
 import { FiBell } from "react-icons/fi";
