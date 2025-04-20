@@ -1,76 +1,84 @@
 import { Button } from "antd";
-import { Layout, theme, ConfigProvider, Typography, Input, Table, Tag, Dropdown, Checkbox } from "antd";
-import type { TableProps, MenuProps, CheckboxProps } from "antd";
+import { Layout, Typography, Input, Table, Tag, Select, Dropdown, Checkbox, Pagination, Modal, Form, notification, App } from "antd";
+import type { TableProps, FormProps } from "antd";
 import { LuChartBarIncreasing } from "react-icons/lu";
 import { PiPencilSimple } from "react-icons/pi";
 import { FiTrash2 } from "react-icons/fi";
 import { FaPlus } from "react-icons/fa";
 import { CiSearch } from "react-icons/ci";
 import { BsThreeDotsVertical } from "react-icons/bs";
+import usePagination from "@/hooks/usePagination";
+import useFetch from "@/hooks/useFetch";
+import useCustomCheckbox from "@/hooks/useCustomCheckbox";
+import type staffType from "@/types/StaffType";
 import { useState } from "react";
-
+import axiosApi from "@/services/api/axiosApi";
 
 const StaffPage = () => {
   const { Text, Link } = Typography;
   const { Content, Footer } = Layout;
-  const { token: { colorBgContainer } } = theme.useToken();
-  const [checkedList, setCheckedList] = useState<string[]>([]);
+  type NotificationType = "success" | "info" | "warning" | "error";
+  const [api, contextHolder] = notification.useNotification();
+  const openNotificationWithIcon = (type: NotificationType, message: string, description: string) => {
+    api[type]({
+      message: message,
+      description:description
+    });
+  };
+  const { modal } = App.useApp();
+  const { data: staffData, setData } = useFetch<staffType>('/staff');
+  const showConfirmDelete = (name:string, id: string) => {
+    modal.confirm({
+      title: `Xác nhận xóa nhân viên ${name}?`,
+      onOk() {
+        console.log(name, id);
+        return axiosApi.delete(`/staff/${id}`).then(()=>{
+          const newData = staffData.filter(datum=>datum.id !== id);
+          setData(newData);
+          openNotificationWithIcon('success', 'Thành công', `Xóa thành công nhân viên ${name}`)
+        })
+      },
+      okText: "Xóa",
+      cancelText: "Hủy",
+      okButtonProps: {variant: "solid", color: "danger"}
+    });
+  };
   type DataType = {
     order: number,
     key: string,
-    id: string,
-    name: string,
-    phone: string,
-    email: string,
-    role: string,
-    gender: string,
-    status: string
-  }
+  } & staffType;
+  
 
-  const actionItems: MenuProps['items'] = [
-    {
-      label: <Text><span className="flex items-center"><PiPencilSimple className="text-[1rem] me-2" />Chỉnh sửa</span></Text>,
-      key: 'edit'
-    },
-    {
-      label: <Text type="danger"><span className="flex items-center"><FiTrash2 className="text-[1rem] me-2" />Xóa</span></Text>,
-      key: 'delete'
-    }
-  ]
-  const dataOptions = ["E001", "E002"];
-  const checkAll = dataOptions.length === checkedList.length;
-  const indeterminate = checkedList.length > 0 && checkedList.length < dataOptions.length;
-  const onCheckedAllChange: CheckboxProps['onChange'] = (e) => {
-    setCheckedList(e.target.checked ? dataOptions : []);
+  const dataOptions: string[] = [];
+  const rawData: DataType[] = [];
+  const dataLen = staffData.length;
+  for (let i = 0; i < dataLen; i++) {
+    rawData.unshift({
+      key: `${i}`,
+      order: dataLen - i,
+      staffId: staffData[i].staffId,
+      name: staffData[i].name,
+      phone: staffData[i].phone,
+      email: staffData[i].email,
+      role: staffData[i].role,
+      gender: staffData[i].gender,
+      status: staffData[i].status,
+      id: staffData[i].id
+    });
+    dataOptions.push(staffData[i].staffId);
   }
-  const addCheck = (id: DataType["id"])=>{
-    const newCheckedList = [...checkedList];
-    newCheckedList.push(id);
-    setCheckedList(newCheckedList);
-  }
-  const removeCheck = (id: DataType["id"])=>{
-    const newCheckedList = [...checkedList].filter(checkid=>checkid !== id);
-    setCheckedList(newCheckedList);
-  }
-
-  const onCheckedChange = (id:DataType["id"])=>{
-    const isChecked = checkedList.find(checkid => checkid === id);
-    if (isChecked)removeCheck(id)
-    else addCheck(id);
-    console.log(checkedList);
-    console.log(checkAll);
-  }
+  const { checkedList, indeterminate, checkAll, onCheckedAllChange, onCheckedChange } = useCustomCheckbox<DataType["staffId"]>({ dataOptions })
 
   const columns: TableProps<DataType>["columns"] = [
     {
       title: <Checkbox onChange={onCheckedAllChange} checked={checkAll} indeterminate={indeterminate}><Text type="secondary">#</Text></Checkbox>,
       dataIndex: "order",
       key: "#",
-      render: (text, record) => (<Checkbox checked={!!checkedList.find(checkid => checkid === record.id)} onChange={()=>{onCheckedChange(record.id)}}><Text strong>{text}</Text></Checkbox>)
+      render: (text, record) => (<Checkbox checked={!!checkedList.find(checkid => checkid === record.staffId)} onChange={() => { onCheckedChange(record.staffId) }}><Text strong>{text}</Text></Checkbox>)
     },
     {
       title: <Text type="secondary">Mã nhân viên</Text>,
-      dataIndex: "id",
+      dataIndex: "staffId",
       key: "id",
       render: (text) => <Link strong>{text}</Link>
     },
@@ -102,7 +110,10 @@ const StaffPage = () => {
       title: <Text type="secondary">Giới tính</Text>,
       dataIndex: "gender",
       key: "gender",
-      render: (text) => (<Text strong>{text}</Text>)
+      render: (text) => {
+        const label = text === "male" ? "Nam" : "Nữ";
+        return <Text strong>{label}</Text>
+      }
     },
     {
       title: <Text type="secondary">Trạng thái</Text>,
@@ -121,60 +132,109 @@ const StaffPage = () => {
       key: "action",
       fixed: "right",
       align: "center",
-      render: () => {
-        return <Dropdown arrow menu={{ items: actionItems }} trigger={["click"]}>
+      render: (_,record) => {
+        return <Dropdown arrow menu={{ items: [{
+          label: <Text><span className="flex items-center"><PiPencilSimple className="text-[1rem] me-2" />Chỉnh sửa</span></Text>,
+          key: 'edit'
+        },
+        {
+          label: <Text type="danger"><span onClick={()=>{showConfirmDelete(record.name, record.id)}} className="flex items-center"><FiTrash2 className="text-[1rem] me-2" />Xóa</span></Text>,
+          key: 'delete'
+        }] }} trigger={["click"]}>
           <Button shape="circle" size="small" icon={<BsThreeDotsVertical />}></Button>
         </Dropdown>
       }
     }
   ]
 
-  const data: DataType[] = [
-    {
-      key: "1",
-      order: 1,
-      id: "E001",
-      name: "Nguyễn Văn Nam",
-      phone: "+84901234567",
-      email: "nguyenvannam@gmail.com",
-      role: "Quản trị viên",
-      gender: "Nam",
-      status: "active",
-    },
-    {
-      key: "2",
-      order: 2,
-      id: "E002",
-      name: "Nguyễn Văn Nam",
-      phone: "+84901234567",
-      email: "nguyenvannam@gmail.com",
-      role: "Quản trị viên",
-      gender: "Nam",
-      status: "active",
-    }
-  ]
+  const { currentPage, currentSize, handlePageChange, paginatedData: data } = usePagination(rawData);
+  // Modal
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [isCreating, setIsCreating] = useState<boolean>(false);
+  const handleCancel = ()=>{
+    setModalOpen(false);
+  }
+  const handleOpen = ()=>{
+    setModalOpen(true);
+  }
+  type FieldType = {
+    name: string,
+    phone: string,
+    email: string,
+    role: string,
+    gender: string,
+    status: string
+  }
+  const handleOnCreateStaff:FormProps<FieldType>['onFinish'] = (values)=>{
+    setIsCreating(true);
+    axiosApi.post('/staff', {...values})
+    .then((response)=>{setData([...staffData,response.data]); setIsCreating(false); setModalOpen(false); openNotificationWithIcon('success','Thành công','Thêm nhân viên thành công');})
+  }
+
   return (
-    <ConfigProvider theme={{
-      components: {
-        Layout: {
-          footerBg: colorBgContainer,
-          footerPadding: "10px 6px"
-        }
-      }
-    }}>
+    <>
       <Content>
+        {contextHolder}
+        <Modal
+        onCancel={handleCancel}
+        open = {modalOpen}
+        title = "Thêm nhân viên"
+        footer = {[]}
+        >
+          <Form
+          name = "createStaff"
+          onFinish={handleOnCreateStaff}
+          labelCol={{span: 5}}
+          wrapperCol={{span: 24}}
+          >
+            <Form.Item name = "name" label = "Tên nhân viên" rules={[{required: true, message: "Tên là bắt buộc"},{min: 5, message: "Độ dài tối thiểu là 5"}]}>
+              <Input/>
+            </Form.Item>
+            <Form.Item name = "phone" label = "Số điện thoại" rules={[{required: true, message: "Số điện thoại là bắt buộc"},{min: 5, message: "Độ dài tối thiểu là 5"}]}>
+              <Input/>
+            </Form.Item>
+            <Form.Item name = "role" label = "Chức vụ" rules={[{required: true, message: "Chức vụ là bắt buộc"},{min: 3, message: "Độ dài tối thiểu là 3"}]}>
+              <Input/>
+            </Form.Item>
+            <Form.Item name = "email" label = "Email" rules={[{required: true, message: "Email là bắt buộc"},{type: "email", message: "Email không hợp lệ"}]}>
+              <Input/>
+            </Form.Item>
+            <Form.Item name = "gender" label = "Giới tính" rules = {[{required: true}]}>
+              <Select options={[{value: 'male', label: "Nam"},{value: "female", label: "Nữ"}]}></Select>
+            </Form.Item>
+            <Form.Item name = "status" label = "Trạng thái" rules = {[{required: true}]}>
+              <Select options={[{value: 'active', label: "Hoạt động"},{value: "inactive", label: "Ngừng hoạt động"}]}></Select>
+            </Form.Item>
+            <Form.Item label = {null}>
+              <Button loading = {isCreating} className="float-right" type="primary" size = "large" htmlType="submit">Thêm</Button>
+            </Form.Item>
+          </Form>
+        </Modal>
         <div className="flex px-2 mt-[10px] items-center gap-x-2">
           <Button size="large" className="ms-auto" icon={<LuChartBarIncreasing />}><Text strong>Bộ lọc</Text></Button>
           <Input style={{ maxWidth: "300px", width: "100%" }} size="large" placeholder="Tìm kiếm" prefix={<CiSearch className="text-xl" />} />
-          <Button size="large" color="primary" variant="solid" icon={<FaPlus />}>Thêm mới</Button>
+          <Button size="large" color="primary" onClick = {handleOpen} variant="solid" icon={<FaPlus />}>Thêm mới</Button>
         </div>
         <div className="px-2 mt-[20px]">
-          <Table<DataType> bordered columns={columns} size="small" dataSource={data} />
+          <Table<DataType> pagination={false} bordered columns={columns} size="small" dataSource={data} />
         </div>
       </Content>
-      <Footer>Footer</Footer>
-    </ConfigProvider>
+      <Footer className="relative">
+        <Pagination
+          showTotal={(total, range) => {
+            return <Text className="absolute left-[6px] top-[50%] translate-y-[-50%]" type="secondary">Hiển thị từ <Text strong>{range[0]}</Text> đến <Text strong>{range[1]}</Text> của <Text strong>{total}</Text> kết quả</Text>
+          }}
+          align="end"
+          showSizeChanger
+          pageSize={currentSize}
+          defaultPageSize={currentSize}
+          current={currentPage}
+          defaultCurrent={1}
+          total={rawData.length}
+          onChange={handlePageChange}
+        />
+      </Footer></>
   )
 }
 
-export default StaffPage
+export default StaffPage;

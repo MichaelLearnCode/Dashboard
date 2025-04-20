@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 
 
 type DashboardMenuProps = {
-    setHeader: (value:string)=>void;
+    setTitle: (value:string)=>void;
 }
 
 const DashboardMenu = (props: DashboardMenuProps) => {
@@ -98,12 +98,12 @@ const DashboardMenu = (props: DashboardMenuProps) => {
             ]
         }
     ]
-    const {setHeader} = props;
+    const {setTitle} = props;
     const [current, setCurrent] = useState("overall");
     
     useEffect(()=>{
-        setHeader(itemsLabel.find((item)=>item.key === current)?.label as string);
-    },[setHeader, current])
+        setTitle(itemsLabel.find((item)=>item.key === current)?.label as string);
+    },[setTitle, current])
     const onClick:MenuProps['onClick'] = (e)=>{
         setCurrent(e.key);
     }

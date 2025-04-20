@@ -6,7 +6,7 @@ import { FiBell } from "react-icons/fi";
 
 const { Title, Text } = Typography;
 type DashboardNavProps = {
-  header: string
+  title: string
 }
 type SelectOptionType = GetProp<SelectProps, 'options'>[number];
 const DashboardNav = (props: DashboardNavProps) => {
@@ -31,10 +31,10 @@ const DashboardNav = (props: DashboardNavProps) => {
     { key: 'logout', label: 'Đăng xuất' }
   ];
 
-  const { header } = props;
+  const { title } = props;
   return (
     <div className="flex items-center h-full justify-between">
-      <Title level={5}>{header}</Title>
+      <Title level={5}>{title}</Title>
       <div className="flex justify-between items-center">
         <Select style={{ minWidth: '160px', marginRight: "8px" }} defaultValue={language} options={languageOptions} onChange={handleLanguageChange} />
         <Dropdown menu={{ items: notiMenu }}>
