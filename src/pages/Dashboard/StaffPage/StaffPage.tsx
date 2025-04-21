@@ -1,5 +1,5 @@
 import { Button } from "antd";
-import { Layout, Typography, Input, Grid, Table, Tag, Select, Dropdown, Checkbox, Pagination, Modal, Form, notification, App } from "antd";
+import { Layout, Typography, Input, Grid, Table,InputNumber,Tag, Select, Dropdown, Checkbox, Pagination, Modal, Form, notification, App } from "antd";
 import type { TableProps, FormProps } from "antd";
 import { LuChartBarIncreasing } from "react-icons/lu";
 import { PiPencilSimple } from "react-icons/pi";
@@ -15,6 +15,53 @@ import { useState } from "react";
 import axiosApi from "@/services/api/axiosApi";
 
 const {useBreakpoint} = Grid;
+
+type DataType = {
+  order: number,
+  key: string,
+} & staffType;
+
+interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
+  editing: boolean;
+  dataIndex: string;
+  title: string;
+  inputType: "number" | "text";
+  record: DataType;
+  index: number;
+}
+
+const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
+  editing,
+  dataIndex,
+  title,
+  inputType,
+  children,
+  ...restProps
+}) => {
+  const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
+
+  return (
+    <td {...restProps}>
+      {editing ? (
+        <Form.Item
+          name={dataIndex}
+          style={{ margin: 0 }}
+          rules={[
+            {
+              required: true,
+              message: `Please Input ${title}!`,
+            },
+          ]}
+        >
+          {inputNode}
+        </Form.Item>
+      ) : (
+        children
+      )}
+    </td>
+  );
+};
+
 
 const StaffPage = () => {
   const { Text, Link } = Typography;
@@ -46,11 +93,6 @@ const StaffPage = () => {
       okButtonProps: { variant: "solid", color: "danger" }
     });
   };
-  type DataType = {
-    order: number,
-    key: string,
-  } & staffType;
-
 
   const dataOptions: string[] = [];
   const rawData: DataType[] = [];
@@ -71,49 +113,100 @@ const StaffPage = () => {
     dataOptions.push(staffData[i].staffId);
   }
   const { checkedList, indeterminate, checkAll, onCheckedAllChange, onCheckedChange } = useCustomCheckbox<DataType["staffId"]>({ dataOptions })
-
-  const columns: TableProps<DataType>["columns"] = [
+  
+  
+  
+  // Editing row
+  
+  
+  
+  
+  
+  const [form] = Form.useForm();
+  const [editingKey, setEditingKey] = useState("");
+  const [isPutting, setIsPutting] = useState<boolean>(false);
+  const isEditing = (record: DataType) => record.key === editingKey;
+  const edit = (record: Partial<DataType> & { key: React.Key }) => {
+    form.setFieldsValue({ name: "", phone: "", email: "",role: "",gender: "",status: "",...record });
+    setEditingKey(record.key);
+  };
+  const cancel = () => {
+    setEditingKey("");
+  };
+  const save = async (id: DataType["id"]) => {
+    try {
+      setIsPutting(true);
+      const row = (await form.validateFields()) as DataType;
+      const response = await axiosApi.put(`/staff/${id}`,{...row});
+      const responseData =response.data as staffType;
+      setIsPutting(false);
+      const newData = [...staffData];
+      const index = newData.findIndex((item) => id === item.id);
+      if (index > -1) {
+        const item = newData[index];
+        newData.splice(index, 1, {
+          ...item,
+          ...responseData,
+        });
+        setData(newData);
+        setEditingKey("");
+      } else {
+        newData.push(responseData);
+        setData(newData);
+        setEditingKey("");
+      }
+    } catch (errInfo) {
+      setIsPutting(false);
+      console.log("Validate Failed:", errInfo);
+    }
+  };
+  const columns:TableProps<DataType>["columns"] = [
     {
       title: <Checkbox onChange={onCheckedAllChange} checked={checkAll} indeterminate={indeterminate}><Text type="secondary">#</Text></Checkbox>,
       dataIndex: "order",
       key: "#",
-      render: (text, record) => (<Checkbox checked={!!checkedList.find(checkid => checkid === record.staffId)} onChange={() => { onCheckedChange(record.staffId) }}><Text strong>{text}</Text></Checkbox>)
+      render: (text:string, record:DataType) => (<Checkbox checked={!!checkedList.find(checkid => checkid === record.staffId)} onChange={() => { onCheckedChange(record.staffId) }}><Text strong>{text}</Text></Checkbox>)
     },
     {
       title: <Text type="secondary">Mã nhân viên</Text>,
       dataIndex: "staffId",
       key: "id",
-      render: (text) => <Link strong>{text}</Link>
+      render: (text:string) => <Link strong>{text}</Link>
     },
     {
       title: <Text type="secondary">Tên nhân viên</Text>,
       dataIndex: "name",
       key: "name",
-      render: (text) => (<Text strong>{text}</Text>)
+
+      render: (text:string) => (<Text strong>{text}</Text>)
     },
     {
       title: <Text type="secondary">Số điện thoại</Text>,
       dataIndex: "phone",
       key: "phone",
-      render: (text) => (<Text strong>{text}</Text>)
+      
+      render: (text:string) => (<Text strong>{text}</Text>)
     },
     {
       title: <Text type="secondary">Email</Text>,
       dataIndex: "email",
       key: "email",
-      render: (text) => (<Text strong>{text}</Text>)
+      
+      render: (text:string) => (<Text strong>{text}</Text>)
     },
     {
       title: <Text type="secondary">Chức vụ</Text>,
       dataIndex: "role",
       key: "role",
-      render: (text) => (<Text strong>{text}</Text>)
+      
+      render: (text:string) => (<Text strong>{text}</Text>)
     },
     {
       title: <Text type="secondary">Giới tính</Text>,
       dataIndex: "gender",
       key: "gender",
-      render: (text) => {
+      
+      render: (text:string) => {
         const label = text === "male" ? "Nam" : "Nữ";
         return <Text strong>{label}</Text>
       }
@@ -121,6 +214,7 @@ const StaffPage = () => {
     {
       title: <Text type="secondary">Trạng thái</Text>,
       dataIndex: "status",
+      
       key: "status",
       render: (status: "active" | "inactive") => {
         const color = status === "active" ? "success" : "volcano";
@@ -135,14 +229,20 @@ const StaffPage = () => {
       key: "action",
       fixed: "right",
       align: "center",
-      render: (_, record) => {
-        return <Dropdown arrow menu={{
+      render: (_:string, record: DataType) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <span>
+            <Button variant = "link" color = "cyan" loading={isPutting} onClick={() => save(record.id)}>Lưu</Button>
+            <Button variant = "link" color="red" onClick = {cancel}>Hủy</Button>
+          </span>
+        ) : <Dropdown disabled = {editingKey !== ""} arrow menu={{
           items: [{
-            label: <Text><span className="flex items-center"><PiPencilSimple className="text-[1rem] me-2" />Chỉnh sửa</span></Text>,
+            label: <Text><span onClick={()=>{edit(record)}} className="flex items-center"><PiPencilSimple className="text-[1rem] me-2" />Chỉnh sửa</span></Text>,
             key: 'edit'
           },
           {
-            label: <Text type="danger"><span onClick={() => { showConfirmDelete(record.name, record.id) }} className="flex items-center"><FiTrash2 className="text-[1rem] me-2" />Xóa</span></Text>,
+            label: <Text type="danger"><span onClick={() => { showConfirmDelete(record.name, record.id) }} className="flex cursor-pointer items-center"><FiTrash2 className="text-[1rem] me-2" />Xóa</span></Text>,
             key: 'delete'
           }]
         }} trigger={["click"]}>
@@ -151,6 +251,24 @@ const StaffPage = () => {
       }
     }
   ]
+  const mergedColumns: TableProps<DataType>["columns"] = columns.map((col) => {
+    const editableKeys: React.Key[] = ["name", "phone", "email", "role","gender","status"];
+  
+    if ("dataIndex" in col && col.key && editableKeys.includes(col.key)) {
+      return {
+        ...col,
+        onCell: (record: DataType) => ({
+          record,
+          inputType: "text",
+          dataIndex: col.dataIndex ?? '',
+          title: "title",
+          editing: isEditing(record),
+        }),
+      };
+    }
+  
+    return col;
+  });
 
   const { currentPage, currentSize, handlePageChange, paginatedData: data } = usePagination(rawData);
   // Modal
@@ -175,6 +293,7 @@ const StaffPage = () => {
     axiosApi.post('/staff', { ...values })
       .then((response) => { setData([...staffData, response.data]); setIsCreating(false); setModalOpen(false); openNotificationWithIcon('success', 'Thành công', 'Thêm nhân viên thành công'); })
   }
+  
 
   return (
     <>
@@ -223,7 +342,19 @@ const StaffPage = () => {
           <Button size="large" color="primary" className="w-full md:w-auto" onClick={handleOpen} variant="solid" icon={<FaPlus />}>Thêm mới</Button>
         </div>
         <div className="px-2 mt-[20px]">
-          <Table<DataType> scroll={{ x: 'max-content' }} pagination={false} bordered columns={columns} size="small" dataSource={data} />
+          <Form form = {form} component={false}>
+            <Table<DataType> 
+              components={{
+                body: { cell: EditableCell },
+              }}
+              scroll={{ x: 'max-content' }} 
+              pagination={false} 
+              bordered 
+              
+              columns={mergedColumns} 
+              size="small" dataSource={data} 
+            />
+          </Form>
         </div>
       </Content>
       <Footer className="relative">
@@ -238,7 +369,7 @@ const StaffPage = () => {
           current={currentPage}
           defaultCurrent={1}
           total={rawData.length}
-          onChange={handlePageChange}
+          onChange={(page,pageSize)=>{handlePageChange(page, pageSize);setEditingKey('')}}
         />
       </Footer></>
   )

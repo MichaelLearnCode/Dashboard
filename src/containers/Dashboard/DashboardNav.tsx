@@ -2,16 +2,18 @@ import { Typography, Select, SelectProps, Grid, GetProp, Dropdown, Badge, Button
 import type { MenuProps } from "antd";
 import useConfigStore from "@/store/ConfigStore";
 import { FiBell } from "react-icons/fi";
+import React from "react";
 
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 type DashboardNavProps = {
-  title: string
+  title: string,
+  drawerTrigger?: React.ReactNode
 }
 type SelectOptionType = GetProp<SelectProps, 'options'>[number];
 const DashboardNav = (props: DashboardNavProps) => {
-  const {md, lg} = useBreakpoint();
+  const { md, lg } = useBreakpoint();
   // Langugage
   const languageOptions: SelectOptionType[] = [
     { value: 'vi', label: <span className="flex items-center"><img className="w-[20px] rounded-sm aspect-[4/3] me-2" src="/image/img_flag_vi.webp" alt="" /><span className="hidden md:block">Tiếng Việt</span></span> },
@@ -32,12 +34,15 @@ const DashboardNav = (props: DashboardNavProps) => {
     { key: 'logout', label: 'Đăng xuất' }
   ];
 
-  const { title } = props;
+  const { title, drawerTrigger } = props;
   return (
     <div className="flex items-center h-full justify-between">
-      <Title level={5}>{title}</Title>
+      <div className="flex items-center">
+        {drawerTrigger}
+        <Title level={5}>{title}</Title>
+      </div>
       <div className="flex justify-between items-center">
-        <Select style={{ width: lg? '160px' : md? '120px' : 'auto', marginRight: "8px" }} defaultValue={language} options={languageOptions} onChange={handleLanguageChange} />
+        <Select style={{ width: lg ? '160px' : md ? '120px' : 'auto', marginRight: "8px" }} defaultValue={language} options={languageOptions} onChange={handleLanguageChange} />
         <Dropdown menu={{ items: notiMenu }}>
           <Badge count={100} offset={[0, 7]}>
             <Button type="text" icon={<FiBell className="text-xl" />}></Button>

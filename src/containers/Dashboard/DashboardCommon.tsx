@@ -2,16 +2,17 @@ import DashboardMenu from "./DashboardMenu";
 import DashboardNav from "./DashboardNav";
 import { Outlet } from "react-router-dom";
 import { useState } from "react";
-import { AiOutlineLeft, AiOutlineRight } from "react-icons/ai";
-import { Layout, ConfigProvider, theme, Button, App, Grid } from "antd";
+import { AiOutlineLeft, AiOutlineRight, AiOutlineClose, AiOutlineBars } from "react-icons/ai";
+import { Layout, ConfigProvider, theme, Button, App, Grid, Drawer } from "antd";
 const { Sider, Header } = Layout;
-const {useBreakpoint} = Grid;
+const { useBreakpoint } = Grid;
 
 const DashboardCommon = () => {
-  const [collasped, setCollasped] = useState<boolean>(false);
+  const [siderCollasped, setSiderCollasped] = useState<boolean>(false);
+  const [drawerCollasped, setDrawerCollasped] = useState<boolean>(true);
   const [currentHeader, setCurrentHeader] = useState<string>('');
   const headerHeight: number = 48;
-  const {md} = useBreakpoint();
+  const { md, sm } = useBreakpoint();
   const { token: { colorBgContainer, colorSplit } } = theme.useToken();
   return (
     <ConfigProvider theme={{
@@ -20,7 +21,7 @@ const DashboardCommon = () => {
           headerBg: colorBgContainer,
           siderBg: colorBgContainer,
           headerHeight: headerHeight,
-          headerPadding: md? "0 28px" : '0 8px',
+          headerPadding: md ? "0 28px" : '0 8px',
           footerBg: colorBgContainer,
           footerPadding: "8px 6px"
         },
@@ -31,16 +32,26 @@ const DashboardCommon = () => {
     }}>
       <App>
         <Layout>
-          <Sider trigger={null} collapsed={collasped} breakpoint="md" collapsedWidth={50} onCollapse={()=>{setCollasped(true)}}>
+          <Sider trigger={null} collapsed={siderCollasped} breakpoint="md" collapsedWidth={sm? 50: 0} onCollapse={() => { setSiderCollasped(true) }}>
             <div className="border-r-[0.8px] w-full relative flex items-center" style={{ borderColor: colorSplit, height: headerHeight }}>
-              {!collasped && <img className="w-[135px] ps-[28px]" src="/image/img_logo.png" alt="" />}
+              {!siderCollasped && <img className="w-[135px] ps-[28px]" src="/image/img_logo.png" alt="" />}
             </div>
-            <DashboardMenu setTitle={setCurrentHeader} />
+            <DashboardMenu menuHeight="100vh" setTitle={setCurrentHeader} />
           </Sider>
           <Layout>
+            <ConfigProvider theme = {{token: {paddingLG: 0, colorSplit: colorBgContainer}}}>
+              <Drawer
+                placement="left"
+                closable={false}
+                open={!drawerCollasped}
+              >
+                <div className="flex"><Button type="text" icon={<AiOutlineClose />} className="ms-auto" onClick={() => { setDrawerCollasped(true) }}></Button></div>
+                <DashboardMenu menuHeight="calc(100vh - 48px)" setTitle={setCurrentHeader} />
+              </Drawer>
+            </ConfigProvider>
             <Header className="relative">
-              <DashboardNav title={currentHeader} />
-              <div className="hidden md:inline-block"><Button onClick={() => { setCollasped((collasped) => !collasped) }} icon={collasped ? <AiOutlineRight /> : <AiOutlineLeft />} size="small" className="left-0 translate-x-[-50%] top-[50%] translate-y-[-50%]" style={{ position: "absolute" }} variant="outlined"></Button></div>
+              <DashboardNav drawerTrigger={<div className="sm:hidden me-2"><Button icon={<AiOutlineBars />} onClick={() => { setDrawerCollasped(false) }}></Button></div>} title={currentHeader} />
+              <div className="hidden md:inline-block"><Button onClick={() => { setSiderCollasped((collasped) => !collasped) }} icon={siderCollasped ? <AiOutlineRight /> : <AiOutlineLeft />} size="small" className="left-0 translate-x-[-50%] top-[50%] translate-y-[-50%]" style={{ position: "absolute" }} variant="outlined"></Button></div>
             </Header>
             <Outlet />
           </Layout>

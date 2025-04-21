@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 
 type DashboardMenuProps = {
     setTitle: (value:string)=>void;
+    menuHeight: string;
 }
 
 const DashboardMenu = (props: DashboardMenuProps) => {
@@ -98,7 +99,7 @@ const DashboardMenu = (props: DashboardMenuProps) => {
             ]
         }
     ]
-    const {setTitle} = props;
+    const {setTitle, menuHeight} = props;
     const [current, setCurrent] = useState("overall");
     
     useEffect(()=>{
@@ -109,7 +110,7 @@ const DashboardMenu = (props: DashboardMenuProps) => {
     }
     
     return (
-        <Menu style={{ height: "100vh"}} onClick = {onClick} mode = "inline" selectedKeys={[current]} items = {items}/>
+        <Menu style={{ height: menuHeight}} onClick = {onClick} mode = "inline" selectedKeys={[current]} items = {items}/>
     )
 }
 
