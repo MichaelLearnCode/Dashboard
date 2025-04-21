@@ -142,7 +142,6 @@ const StaffPage = () => {
   
   const [form] = Form.useForm();
   const [editingKey, setEditingKey] = useState("");
-  const [isPutting, setIsPutting] = useState<boolean>(false);
   const isEditing = (record: DataType) => record.key === editingKey;
   const edit = (record: Partial<DataType> & { key: React.Key }) => {
     form.setFieldsValue({ name: "", phone: "", email: "",role: "",gender: "",status: "",...record });
@@ -153,11 +152,9 @@ const StaffPage = () => {
   };
   const save = async (id: DataType["id"]) => {
     try {
-      setIsPutting(true);
       const row = (await form.validateFields()) as DataType;
       const response = await axiosApi.put(`/staff/${id}`,{...row});
       const responseData =response.data as staffType;
-      setIsPutting(false);
       const newData = [...staffData];
       const index = newData.findIndex((item) => id === item.id);
       if (index > -1) {
@@ -174,7 +171,6 @@ const StaffPage = () => {
         setEditingKey("");
       }
     } catch (errInfo) {
-      setIsPutting(false);
       console.log("Validate Failed:", errInfo);
     }
   };
