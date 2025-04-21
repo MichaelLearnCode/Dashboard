@@ -210,8 +210,8 @@ const StaffPage = () => {
             <Form.Item name="status" label="Trạng thái" rules={[{ required: true }]}>
               <Select options={[{ value: 'active', label: "Hoạt động" }, { value: "inactive", label: "Ngừng hoạt động" }]}></Select>
             </Form.Item>
-            <Form.Item label={null}>
-              <Button loading={isCreating} className="float-right" type="primary" size="large" htmlType="submit">Thêm</Button>
+            <Form.Item label="">
+              <div className="w-full flex justify-end"><Button loading={isCreating} type="primary" size="large" htmlType="submit">Thêm</Button></div>
             </Form.Item>
           </Form>
         </Modal>
