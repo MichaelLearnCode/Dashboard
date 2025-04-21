@@ -11,6 +11,9 @@ const DashboardCommon = () => {
   const [siderCollasped, setSiderCollasped] = useState<boolean>(false);
   const [drawerCollasped, setDrawerCollasped] = useState<boolean>(true);
   const [currentHeader, setCurrentHeader] = useState<string>('');
+  const url = new URL(window.location.href);
+  const currentLocation = url.pathname.split('/')[url.pathname.split('/').length - 1];
+  const [current, setCurrent] = useState(currentLocation);
   const headerHeight: number = 48;
   const { md, sm } = useBreakpoint();
   const { token: { colorBgContainer, colorSplit } } = theme.useToken();
@@ -36,17 +39,19 @@ const DashboardCommon = () => {
             <div className="border-r-[0.8px] w-full relative flex items-center" style={{ borderColor: colorSplit, height: headerHeight }}>
               {!siderCollasped && <img className="w-[135px] ps-[28px]" src="/image/img_logo.png" alt="" />}
             </div>
-            <DashboardMenu menuHeight="100vh" setTitle={setCurrentHeader} />
+            <DashboardMenu current = {current} setCurrent = {setCurrent} menuHeight="100vh" setTitle={setCurrentHeader} />
           </Sider>
           <Layout>
             <ConfigProvider theme = {{token: {paddingLG: 0, colorSplit: colorBgContainer}}}>
               <Drawer
+                width={200}
                 placement="left"
                 closable={false}
+                onClose={()=>{setDrawerCollasped(true)}}
                 open={!drawerCollasped}
               >
                 <div className="flex"><Button type="text" icon={<AiOutlineClose />} className="ms-auto" onClick={() => { setDrawerCollasped(true) }}></Button></div>
-                <DashboardMenu menuHeight="calc(100vh - 48px)" setTitle={setCurrentHeader} />
+                <DashboardMenu current = {current} setCurrent = {setCurrent} menuHeight="calc(100vh - 48px)" setTitle={setCurrentHeader} />
               </Drawer>
             </ConfigProvider>
             <Header className="relative">

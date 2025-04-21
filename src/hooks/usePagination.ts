@@ -2,7 +2,7 @@ import { useState } from "react";
 
 function usePagination<T>(data: T[]){
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const [currentSize, setCurrentSize] = useState<number>(5);
+    const [currentSize, setCurrentSize] = useState<number>(10);
     const handlePageChange = (page:number, pageSize:number)=>{
         if(page !== currentPage)setCurrentPage(page);
         if (pageSize !== currentSize)setCurrentSize(pageSize);

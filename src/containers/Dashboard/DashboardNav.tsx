@@ -1,9 +1,11 @@
-import { Typography, Select, SelectProps, Grid, GetProp, Dropdown, Badge, Button, Avatar } from "antd";
+import { Typography, Select, SelectProps, Grid, GetProp, Dropdown, Badge, Button, Avatar, App } from "antd";
 import type { MenuProps } from "antd";
 import useConfigStore from "@/store/ConfigStore";
 import { FiBell } from "react-icons/fi";
-import React from "react";
-
+import React, { useEffect, useState } from "react";
+import type UserType from "@/types/UserType";
+import useAuthStore from "@/store/AuthStore";
+import axiosApi from "@/services/api/axiosApi";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -13,6 +15,33 @@ type DashboardNavProps = {
 }
 type SelectOptionType = GetProp<SelectProps, 'options'>[number];
 const DashboardNav = (props: DashboardNavProps) => {
+  const { modal } = App.useApp();
+  const setAccessToken = useAuthStore((state)=>state.setAccessToken);
+  const showConfirmLogout = () => {
+    modal.confirm({
+      title: 'Xác nhận đăng xuất?',
+      onOk() {
+        setAccessToken('');
+        localStorage.removeItem('access_token');
+      },
+      okText: "Đăng xuất",
+      cancelText: "Hủy",
+      okButtonProps: { variant: "solid", color: "danger" }
+    });
+  };
+  const [user, setUser] = useState<UserType | null>(null)
+  const accessToken = useAuthStore((state) => state.accessToken);
+  useEffect(() => {
+    async function fetchUser() {
+      const response = await axiosApi.get('/users');
+      const users = response.data as UserType[];
+      const user = users.find((user) => user.access_token === accessToken);
+      if (user) {
+        setUser(user);
+      }
+    }
+    fetchUser();
+  }, [])
   const { md, lg } = useBreakpoint();
   // Langugage
   const languageOptions: SelectOptionType[] = [
@@ -31,7 +60,7 @@ const DashboardNav = (props: DashboardNavProps) => {
   ]
   const userMenu: MenuProps['items'] = [
     { key: 'profile', label: 'Thông tin cá nhân' },
-    { key: 'logout', label: 'Đăng xuất' }
+    { key: 'logout', label: <span onClick={showConfirmLogout}>Đăng xuất</span> }
   ];
 
   const { title, drawerTrigger } = props;
@@ -48,10 +77,10 @@ const DashboardNav = (props: DashboardNavProps) => {
             <Button type="text" icon={<FiBell className="text-xl" />}></Button>
           </Badge>
         </Dropdown>
-        <Dropdown menu={{ items: userMenu }}>
+        <Dropdown trigger={["click"]} menu={{ items: userMenu }}>
           <div className="ms-[32px] flex items-center cursor-pointer">
-            <Avatar shape="circle" src="https://cdn.jsdelivr.net/gh/faker-js/assets-person-portrait/female/512/28.jpg" />
-            <Text strong className="ms-1 text-lg hidden md:block">Test User</Text>
+            <Avatar shape="circle" src={user?.avatar} />
+            <Text strong className="ms-1 text-lg hidden md:block">{user?.name || "User Name"}</Text>
           </div>
         </Dropdown>
       </div>

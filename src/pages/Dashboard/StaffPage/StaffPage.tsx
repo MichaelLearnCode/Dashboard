@@ -1,5 +1,5 @@
 import { Button } from "antd";
-import { Layout, Typography, Input, Grid, Table,InputNumber,Tag, Select, Dropdown, Checkbox, Pagination, Modal, Form, notification, App } from "antd";
+import { Layout, Typography, Input, Grid, Table,Tag,InputNumber, Select, Dropdown, Checkbox, Pagination, Modal, Form, notification, App } from "antd";
 import type { TableProps, FormProps } from "antd";
 import { LuChartBarIncreasing } from "react-icons/lu";
 import { PiPencilSimple } from "react-icons/pi";
@@ -26,7 +26,7 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   dataIndex: string;
   title: string;
   inputType: "number" | "text";
-  record: DataType;
+  currentKey: string;
   index: number;
 }
 
@@ -34,12 +34,17 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   editing,
   dataIndex,
   title,
+  currentKey,
   inputType,
   children,
   ...restProps
 }) => {
-  const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
 
+  // 
+  let inputNode;
+  if (currentKey && currentKey === "gender")inputNode = <Select options={[{ value: 'male', label: "Nam" }, { value: "female", label: "Nữ" }]}></Select>;
+  else if (currentKey && currentKey === "status")inputNode = <Select options={[{ value: 'active', label: "Hoạt động" }, { value: "inactive", label: "Ngừng hoạt động" }]}></Select>;
+  else inputNode = inputType === "number"? <InputNumber/> : <Input/>
   return (
     <td {...restProps}>
       {editing ? (
@@ -49,7 +54,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
           rules={[
             {
               required: true,
-              message: `Please Input ${title}!`,
+              message: `Hãy nhập ${title}!`,
             },
           ]}
         >
@@ -81,7 +86,6 @@ const StaffPage = () => {
     modal.confirm({
       title: `Xác nhận xóa nhân viên ${name}?`,
       onOk() {
-        console.log(name, id);
         return axiosApi.delete(`/staff/${id}`).then(() => {
           const newData = staffData.filter(datum => datum.id !== id);
           setData(newData);
@@ -93,6 +97,20 @@ const StaffPage = () => {
       okButtonProps: { variant: "solid", color: "danger" }
     });
   };
+  const showConfirmEdit = (id: string) => {
+    modal.confirm({
+      title: "Xác nhận lưu",
+      onOk() {
+        return save(id).then(()=>{
+          openNotificationWithIcon('success', 'Thành công', 'Lưu thành công')
+        })
+      },
+      okText: "Lưu",
+      cancelText: "Hủy",
+      okButtonProps: { variant: "solid", color: "blue" }
+    });
+  };
+  
 
   const dataOptions: string[] = [];
   const rawData: DataType[] = [];
@@ -233,7 +251,7 @@ const StaffPage = () => {
         const editable = isEditing(record);
         return editable ? (
           <span>
-            <Button variant = "link" color = "cyan" loading={isPutting} onClick={() => save(record.id)}>Lưu</Button>
+            <Button variant = "link" color = "cyan" onClick={() => showConfirmEdit(record.id)}>Lưu</Button>
             <Button variant = "link" color="red" onClick = {cancel}>Hủy</Button>
           </span>
         ) : <Dropdown disabled = {editingKey !== ""} arrow menu={{
@@ -257,13 +275,15 @@ const StaffPage = () => {
     if ("dataIndex" in col && col.key && editableKeys.includes(col.key)) {
       return {
         ...col,
-        onCell: (record: DataType) => ({
-          record,
-          inputType: "text",
-          dataIndex: col.dataIndex ?? '',
-          title: "title",
-          editing: isEditing(record),
-        }),
+        onCell(record: DataType) {
+          return {
+            currentKey: this.key,
+            inputType: "text",
+            dataIndex: col.dataIndex ?? '',
+            title: "title",
+            editing: isEditing(record),
+          }
+        },
       };
     }
   

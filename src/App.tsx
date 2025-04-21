@@ -10,13 +10,25 @@ import OrdersPage from "@/pages/Dashboard/OrdersPage/OrdersPage";
 import StaffPage from "@/pages/Dashboard/StaffPage/StaffPage";
 import StoragePage from "@/pages/Dashboard/StoragePage/StoragePage";
 import DashboardCommon from "./containers/Dashboard/DashboardCommon";
-import ErrorPage from "./pages/Dashboard/ErrorPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorPage from "./pages/ErrorPage";
+import LoginPage from "./pages/Auth/LoginPage";
 import { ConfigProvider } from "antd";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Navigate to="/dashboard/overall" replace />
+  },
+  {
+    path: "/auth",
+    errorElement: <ErrorPage/>,
+    children:[
+      {
+        path:'login',
+        Component: LoginPage
+      }
+    ]
   },
   {
     path: "/dashboard",
@@ -27,16 +39,16 @@ const router = createBrowserRouter([
         index: true,
         element: <Navigate to="overall" replace />
       },
-      {path: 'overall', Component: OverallPage},
-      {path: 'staff', Component: StaffPage},
-      {path: 'customers', Component: CustomersPage},
-      {path: 'orders', Component: OrdersPage},
-      {path: 'storage', Component: StoragePage},
-      {path: 'finance', Component: FinancePage},
-      {path: 'discount', Component: DiscountPage},
-      {path: 'notification', Component: NotiPage},
-      {path: 'categories', Component: CategoriesPage},
-      {path: 'shipping', Component: ShippingPage}
+      { path: 'overall', element: <ProtectedRoute><OverallPage/></ProtectedRoute> },
+      { path: 'staff', element: <ProtectedRoute><StaffPage/></ProtectedRoute> },
+      { path: 'customers', element: <ProtectedRoute><CustomersPage/></ProtectedRoute> },
+      { path: 'orders', element: <ProtectedRoute><OrdersPage/></ProtectedRoute> },
+      { path: 'storage', element: <ProtectedRoute><StoragePage/></ProtectedRoute> },
+      { path: 'finance', element: <ProtectedRoute><FinancePage/></ProtectedRoute> },
+      { path: 'discount', element: <ProtectedRoute><DiscountPage/></ProtectedRoute> },
+      { path: 'notification', element: <ProtectedRoute><NotiPage/></ProtectedRoute> },
+      { path: 'categories', element: <ProtectedRoute><CategoriesPage/></ProtectedRoute> },
+      { path: 'shipping', element: <ProtectedRoute><ShippingPage/></ProtectedRoute> }
     ]
   }
 ])

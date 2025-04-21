@@ -1,5 +1,5 @@
 import type { MenuProps } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {Menu} from "antd";
 import { AiOutlinePieChart , AiOutlineUser, AiOutlineTeam, AiOutlineInbox, AiOutlineTruck, AiOutlineDollar, AiOutlineBell  } from "react-icons/ai";
 import { HiOutlineMenuAlt2 } from "react-icons/hi";
@@ -10,6 +10,8 @@ import { Link } from "react-router-dom";
 type DashboardMenuProps = {
     setTitle: (value:string)=>void;
     menuHeight: string;
+    current: string,
+    setCurrent: React.Dispatch<React.SetStateAction<string>>
 }
 
 const DashboardMenu = (props: DashboardMenuProps) => {
@@ -99,8 +101,8 @@ const DashboardMenu = (props: DashboardMenuProps) => {
             ]
         }
     ]
-    const {setTitle, menuHeight} = props;
-    const [current, setCurrent] = useState("overall");
+    const {setTitle, menuHeight, current, setCurrent} = props;
+    
     
     useEffect(()=>{
         setTitle(itemsLabel.find((item)=>item.key === current)?.label as string);
