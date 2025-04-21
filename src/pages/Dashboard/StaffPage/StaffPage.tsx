@@ -1,5 +1,5 @@
 import { Button } from "antd";
-import { Layout, Typography, Input, Table, Tag, Select, Dropdown, Checkbox, Pagination, Modal, Form, notification, App } from "antd";
+import { Layout, Typography, Input, Grid, Table, Tag, Select, Dropdown, Checkbox, Pagination, Modal, Form, notification, App } from "antd";
 import type { TableProps, FormProps } from "antd";
 import { LuChartBarIncreasing } from "react-icons/lu";
 import { PiPencilSimple } from "react-icons/pi";
@@ -14,8 +14,11 @@ import type staffType from "@/types/StaffType";
 import { useState } from "react";
 import axiosApi from "@/services/api/axiosApi";
 
+const {useBreakpoint} = Grid;
+
 const StaffPage = () => {
   const { Text, Link } = Typography;
+  const {md} = useBreakpoint();
   const { Content, Footer } = Layout;
   type NotificationType = "success" | "info" | "warning" | "error";
   const [api, contextHolder] = notification.useNotification();
@@ -212,21 +215,23 @@ const StaffPage = () => {
             </Form.Item>
           </Form>
         </Modal>
-        <div className="flex px-2 mt-[10px] items-center gap-x-2">
-          <Button size="large" className="ms-auto" icon={<LuChartBarIncreasing />}><Text strong>Bộ lọc</Text></Button>
-          <Input style={{ maxWidth: "300px", width: "100%" }} size="large" placeholder="Tìm kiếm" prefix={<CiSearch className="text-xl" />} />
-          <Button size="large" color="primary" onClick={handleOpen} variant="solid" icon={<FaPlus />}>Thêm mới</Button>
+        <div className="flex px-2 flex-col md:flex-row mt-[10px] md:items-center gap-y-2 md:gap-y-0 gap-x-2">
+          <div className="flex md:ms-auto gap-x-2">
+            <Button size="large" icon={<LuChartBarIncreasing />}><Text strong>Bộ lọc</Text></Button>
+            <Input  size="large" placeholder="Tìm kiếm" prefix={<CiSearch className="text-xl md:max-w-[300px] w-full" />} />
+          </div>
+          <Button size="large" color="primary" className="w-full md:w-auto" onClick={handleOpen} variant="solid" icon={<FaPlus />}>Thêm mới</Button>
         </div>
         <div className="px-2 mt-[20px]">
-          <Table<DataType> pagination={false} bordered columns={columns} size="small" dataSource={data} />
+          <Table<DataType> scroll={{ x: 'max-content' }} pagination={false} bordered columns={columns} size="small" dataSource={data} />
         </div>
       </Content>
       <Footer className="relative">
         <Pagination
           showTotal={(total, range) => {
-            return <Text className="absolute left-[6px] top-[50%] translate-y-[-50%]" type="secondary">Hiển thị từ <Text strong>{range[0]}</Text> đến <Text strong>{range[1]}</Text> của <Text strong>{total}</Text> kết quả</Text>
+            return <Text className="absolute hidden md:block left-[6px] top-[50%] translate-y-[-50%]" type="secondary">Hiển thị từ <Text strong>{range[0]}</Text> đến <Text strong>{range[1]}</Text> của <Text strong>{total}</Text> kết quả</Text>
           }}
-          align="end"
+          align= {md? 'end' : 'center'}
           showSizeChanger
           pageSize={currentSize}
           defaultPageSize={currentSize}

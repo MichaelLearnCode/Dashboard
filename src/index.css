@@ -18,11 +18,12 @@
 
     /* colors */
     --color-primary-gradient: linear-gradient(90deg, #eb2702 3.5%, #ff7d25 75%, #ff9d5a 100%);
-    --breakpoint-sm: 36rem;
-    --breakpoint-md: 48rem;
-    --breakpoint-lg: 62rem;
-    --breakpoint-xl: 75rem;
-    --breakpoint-2xl: 82.5rem;
+    --breakpoint-xs: 480px;
+    --breakpoint-sm: 576px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --breakpoint-xl: 1200px;
+    --breakpoint-2xl: 1600px;
     --color-error-1: #D70801;
     --color-error-2: #FE564B;
     --color-error-3: #FFEEEA;
