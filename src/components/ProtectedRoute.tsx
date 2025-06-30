@@ -6,9 +6,7 @@ const ProtectedRoute = ({children}: PropsWithChildren) => {
     const navigate = useNavigate();
 
     useEffect(()=>{
-        if (!accessToken){
-            navigate('/auth/login', {replace: true});
-        }
+       
     }, [navigate, accessToken])
     return children;
 }

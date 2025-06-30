@@ -1,13 +1,20 @@
 import DashboardMenu from "./DashboardMenu";
 import DashboardNav from "./DashboardNav";
-import { Outlet } from "react-router-dom";
-import { useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import Hotjar from "@hotjar/browser";
 import { AiOutlineLeft, AiOutlineRight, AiOutlineClose, AiOutlineBars } from "react-icons/ai";
 import { Layout, ConfigProvider, theme, Button, App, Grid, Drawer } from "antd";
 const { Sider, Header } = Layout;
 const { useBreakpoint } = Grid;
 
 const DashboardCommon = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    // Thông báo cho Hotjar: "đã sang trang mới"
+    Hotjar.stateChange(pathname);
+  }, [pathname]);
+  
   const [siderCollasped, setSiderCollasped] = useState<boolean>(false);
   const [drawerCollasped, setDrawerCollasped] = useState<boolean>(true);
   const [currentHeader, setCurrentHeader] = useState<string>('');

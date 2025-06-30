@@ -1,13 +1,9 @@
 import { FormProps, Form, Input, Typography, Button, Checkbox, notification } from "antd";
-import { useState } from "react";
-import axiosApi from "@/services/api/axiosApi";
 import useAuthStore from "@/store/AuthStore";
-import type UserType from "@/types/UserType";
 import { useNavigate } from "react-router-dom";
 const { Link } = Typography;
 
 const LoginPage = () => {
-  const setAccessToken = useAuthStore((state)=>state.setAccessToken);
   const navigate = useNavigate();
   const setUser = useAuthStore((state)=>state.setUser);
   type NotificationType = "success" | "info" | "warning" | "error";
@@ -23,21 +19,10 @@ const LoginPage = () => {
     password: string,
     remember: boolean
   }
-  const [isLoading, setIsLoading] = useState(false);
-  const onFinish:FormProps<FieldType>['onFinish'] = async (values)=>{
-    console.log(1);
-    setIsLoading(true);
-    const response = await axiosApi.get('/users');
-    setIsLoading(false);
-    const users = response.data as UserType[];
-    const user = users.find(user=>user.email === values.email && user.password === values.password);
-    if (!user){
-      return openNotificationWithIcon('error', 'Lỗi', 'Tài khoản hoặc mật khẩu không đúng');
-    }
-    setAccessToken(user.access_token);
-    setUser(user);
-    localStorage.setItem('access_token', user.access_token);
-    openNotificationWithIcon('success', 'Thành công', `Chào mừng ${user.name}`);
+  const onFinish:FormProps<FieldType>['onFinish'] = async ()=>{
+    setUser({email: 'michael@gmail.com', password: '123456', access_token: '2323', name: 'Michael', avatar: '/image/img_avatar.png'});
+    localStorage.setItem('access_token', 'sdsdsdsd');
+    openNotificationWithIcon('success', 'Thành công', `Chào mừng Michael`);
     navigate('/dashboard/overall', {replace: true})
   }
   return (
@@ -63,7 +48,7 @@ const LoginPage = () => {
             <Link>Quên mật khẩu?</Link>
           </div>
           <Form.Item<FieldType> label={null}>
-            <Button htmlType= "submit" className="w-full" variant="solid" loading= {isLoading} type="primary">Đăng nhập</Button>
+            <Button htmlType= "submit" className="w-full" variant="solid" type="primary">Đăng nhập</Button>
           </Form.Item>
         </Form>
       </div>
